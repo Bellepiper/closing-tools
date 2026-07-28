@@ -114,6 +114,11 @@
     <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:13.5px;margin-bottom:10px;cursor:pointer">
       <input type="checkbox" id="hasGuar" checked onchange="guarToggled()"> Deal has guarantor(s) — include the notarized guarantor agreement paragraph
     </label>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+      <label for="subjBox" style="margin-bottom:0;white-space:nowrap">Subject:</label>
+      <input type="text" id="subjBox" style="flex:1">
+      <button class="btn small" type="button" onclick="copySubject()">Copy subject</button>
+    </div>
     <textarea id="emailBox" spellcheck="false" style="width:100%;min-height:300px;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:13.5px;line-height:1.5;font-family:inherit;color:var(--ink)"></textarea>
     <p class="note">The address, lease dates, and payment amounts update automatically as you fill in the deal info above. You can also edit the text directly — if you do, it stops auto-updating so your edits aren't lost; hit “↺ Update from deal info” to re-sync. Attach the guarantor agreement PDF(s) when you send it.</p>
   </div>
@@ -382,17 +387,32 @@ Your closing manager will issue the payment request via “Authorize.Net”. Aut
 
 Please send a screenshot of the payment here.`;
 }
+function buildSubject(){
+  const addr = v('addr');
+  return 'Congratulations & Lease Signing - ' + (addr ? addr.split(',').slice(0,2).join(',').trim() : '[address]');
+}
+let subjDirty = false;
+const subjBox = document.getElementById('subjBox');
+subjBox.addEventListener('input', ()=>{ subjDirty = true; });
+async function copySubject(){
+  try { await navigator.clipboard.writeText(subjBox.value); setStatus('Subject copied.', 'ok'); }
+  catch(e){ subjBox.select(); document.execCommand('copy'); setStatus('Subject copied.', 'ok'); }
+}
 let emailDirty = false;
 const emailBox = document.getElementById('emailBox');
 emailBox.addEventListener('input', ()=>{
   emailDirty = true;
   document.getElementById('refreshBtn').style.display = '';
 });
-function refreshEmail(){ if (!emailDirty) emailBox.value = buildEmail(); }
+function refreshEmail(){
+  if (!emailDirty) emailBox.value = buildEmail();
+  if (!subjDirty) subjBox.value = buildSubject();
+}
 function resetEmail(){
-  emailDirty = false;
+  emailDirty = false; subjDirty = false;
   document.getElementById('refreshBtn').style.display = 'none';
   emailBox.value = buildEmail();
+  subjBox.value = buildSubject();
 }
 const GUAR_PARA = `
 
